@@ -28,7 +28,7 @@ Telegram Bot на Python з Webhook (Deploy на Railway)
 
 1. Клонування репозиторію
 
-git clone https://github.com/yourusername/your-telegram-bot.git
+git clone https://github.com/Sergio-Maniani/my-telegram-bot.git
 cd your-telegram-bot
 
 2. Встановлення залежностей
