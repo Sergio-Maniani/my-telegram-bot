@@ -292,7 +292,7 @@ async def restart(callback: CallbackQuery):
 
 
 # === Настройки webhook ===
-WEBHOOK_HOST = "https://my-telegram-bot.onrender.com"  # <-- после деплоя заменишь на свой Render URL
+WEBHOOK_HOST = "https://my-telegram-bot-6bpe.onrender.com"  
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
