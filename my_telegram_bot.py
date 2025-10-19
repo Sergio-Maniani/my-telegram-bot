@@ -1,4 +1,5 @@
 import os
+from aiohttp import web
 import random
 from datetime import datetime
 import asyncio
@@ -290,13 +291,46 @@ async def restart(callback: CallbackQuery):
     await callback.message.edit_text(TEXTS["choose_lang"]["en"], reply_markup=kb)
 
 
-# === Запуск бота ===
-async def main():
-    print("Bot started")
-    await dp.start_polling(bot)
+# === Настройки webhook ===
+WEBHOOK_HOST = "https://my-telegram-bot.onrender.com"  # <-- после деплоя заменишь на свой Render URL
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+
+
+async def handle(request):
+    """Обработка входящих запросов от Telegram."""
+    data = await request.json()
+    update = dp._update_class.model_validate(data)
+    await dp.feed_update(bot, update)
+    return web.Response()
+
+
+async def on_startup(app):
+    """При старте приложения — регистрируем webhook в Telegram."""
+    await bot.set_webhook(WEBHOOK_URL)
+    print(f"✅ Webhook установлен: {WEBHOOK_URL}")
+
+
+async def on_shutdown(app):
+    """Отключаем webhook при завершении."""
+    print("Отключаем webhook...")
+    await bot.delete_webhook()
+    await bot.session.close()
+
+
+def main():
+    """Запускаем aiohttp веб-сервер."""
+    app = web.Application()
+    app.router.add_post(WEBHOOK_PATH, handle)
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+
+    # Render передаёт порт через переменную окружения
+    port = int(os.getenv("PORT", 8080))
+    web.run_app(app, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 
 
