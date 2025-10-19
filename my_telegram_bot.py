@@ -293,13 +293,27 @@ async def restart(callback: CallbackQuery):
 
 
 async def handle(request):
-    data = await request.json()
-    update = types.Update.model_validate(data)
-    await dp.feed_update(bot, update)
-    return web.Response()
+    try:
+        # Логируем тело запроса, чтобы увидеть что приходит
+        body = await request.text()
+        print(f"Request body: {body}")  # Логируем
 
-app = web.Application()
-app.router.add_post("/webhook", handle)
+        # Пробуем обработать данные как JSON
+        data = await request.json()
+    except Exception as e:
+        # Логируем ошибку, если JSON невалиден
+        print(f"Error parsing JSON: {e}")
+        return web.Response(status=400, text="Bad Request - Invalid JSON")
+
+    try:
+        # Обрабатываем корректные данные
+        update = types.Update.model_validate(data)
+        await dp.feed_update(bot, update)
+        return web.Response()  # Ответ от сервера
+    except Exception as e:
+        print(f"Error handling webhook: {e}")
+        return web.Response(status=500, text="Internal Server Error")
+
 
 async def on_startup(app):
     webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/webhook"
