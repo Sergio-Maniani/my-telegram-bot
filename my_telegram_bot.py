@@ -313,7 +313,9 @@ async def handle(request):
     except Exception as e:
         print(f"Error handling webhook: {e}")
         return web.Response(status=500, text="Internal Server Error")
-
+    
+app = web.Application()
+app.router.add_post("/webhook", handle)
 
 async def on_startup(app):
     webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/webhook"
