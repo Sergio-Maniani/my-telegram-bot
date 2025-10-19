@@ -8,7 +8,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
-import os
+
 
 load_dotenv()
 
@@ -292,16 +292,18 @@ async def restart(callback: CallbackQuery):
     await callback.message.edit_text(TEXTS["choose_lang"]["en"], reply_markup=kb)
 
 
+# === Обработка webhook ===
 async def handle(request):
     try:
-        # Логируем тело запроса, чтобы увидеть что приходит
+        # Логируем тело запроса
         body = await request.text()
         print(f"Request body: {body}")  # Логируем
 
         # Пробуем обработать данные как JSON
         data = await request.json()
+        if not data.get("message", {}).get("text"):
+            return web.Response(status=400, text="Bad Request - Empty message text")
     except Exception as e:
-        # Логируем ошибку, если JSON невалиден
         print(f"Error parsing JSON: {e}")
         return web.Response(status=400, text="Bad Request - Invalid JSON")
 
