@@ -100,7 +100,7 @@ curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" -d "url=h
 
 Контакты
 
-Если возникнут вопросы, пишите: your_email@example.com или создавайте issue в репозитории.
+Если возникнут вопросы, пишите: "SergioManiani.dev@outlook.com" или создавайте issue в репозитории.
 
 ---
 
