@@ -3,6 +3,7 @@ from aiohttp import web
 import random
 from datetime import datetime
 import asyncio
+from aiogram import types
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
@@ -291,46 +292,29 @@ async def restart(callback: CallbackQuery):
     await callback.message.edit_text(TEXTS["choose_lang"]["en"], reply_markup=kb)
 
 
-# === Настройки webhook ===
-WEBHOOK_HOST = "https://my-telegram-bot-6bpe.onrender.com"  
-WEBHOOK_PATH = "/webhook"
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-
-
 async def handle(request):
-    """Обработка входящих запросов от Telegram."""
     data = await request.json()
-    update = dp._update_class.model_validate(data)
+    update = types.Update.model_validate(data)
     await dp.feed_update(bot, update)
     return web.Response()
 
+app = web.Application()
+app.router.add_post("/webhook", handle)
 
 async def on_startup(app):
-    """При старте приложения — регистрируем webhook в Telegram."""
-    await bot.set_webhook(WEBHOOK_URL)
-    print(f"✅ Webhook установлен: {WEBHOOK_URL}")
-
+    webhook_url = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}/webhook"
+    await bot.set_webhook(webhook_url)
+    print(f"✅ Webhook set: {webhook_url}")
 
 async def on_shutdown(app):
-    """Отключаем webhook при завершении."""
-    print("Отключаем webhook...")
     await bot.delete_webhook()
     await bot.session.close()
+    print("🛑 Webhook removed and bot stopped.")
 
-
-def main():
-    """Запускаем aiohttp веб-сервер."""
-    app = web.Application()
-    app.router.add_post(WEBHOOK_PATH, handle)
-    app.on_startup.append(on_startup)
-    app.on_shutdown.append(on_shutdown)
-
-    # Render передаёт порт через переменную окружения
-    port = int(os.getenv("PORT", 8080))
-    web.run_app(app, host="0.0.0.0", port=port)
-
+app.on_startup.append(on_startup)
+app.on_shutdown.append(on_shutdown)
 
 if __name__ == "__main__":
-    main()
+    web.run_app(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
 
 
