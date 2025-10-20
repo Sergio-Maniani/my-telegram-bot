@@ -118,7 +118,14 @@ TEXTS = {
         "ua": "💬 Відповідь від розробника:\n\n{message}",
         "pl": "💬 Odpowiedź od dewelopera:\n\n{message}",
         "ru": "💬 Ответ от разработчика:\n\n{message}"
+    },
+        "msg_no_reply": {
+        "en": "❗ There is no user to reply to. Use /start to reset.",
+        "ua": "❗ Немає користувача для відповіді. Використайте /start, щоб почати заново.",
+        "pl": "❗ Brak użytkownika do odpowiedzi. Użyj /start, aby rozpocząć od nowa.",
+        "ru": "❗ Нет пользователя для ответа. Напишите /start, чтобы начать заново."
     }
+
 }
 
 LANGS = {"en": "Eng 🇬🇧", "ua": "Укр 🇺🇦","pl": "Pol 🇵🇱", "ru": "Рус 🇷🇺"}
@@ -159,6 +166,9 @@ async def lang_chosen(callback: CallbackQuery):
 # === Обработка сообщений пользователя ===
 @dp.message(lambda m: m.from_user.id != ADMIN_ID)
 async def handle_user(message: Message):
+    if not message.text or not message.text.strip():
+        return
+    
     user_id = message.from_user.id
     text = message.text.strip()
 
@@ -265,6 +275,9 @@ async def reply_to_user(callback: CallbackQuery):
 # === Ответ администратора пользователю ===
 @dp.message(lambda m: m.from_user.id == ADMIN_ID)
 async def admin_reply(message: Message):
+    if not message.text or not message.text.strip():
+        return
+    
     admin_id = message.from_user.id
     if admin_id in awaiting_reply:
         target_id = awaiting_reply[admin_id]
