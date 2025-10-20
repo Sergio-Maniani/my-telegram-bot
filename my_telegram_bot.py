@@ -297,24 +297,30 @@ async def handle(request):
     try:
         # Логируем тело запроса
         body = await request.text()
-        print(f"Request body: {body}")  # Логируем
+        print(f"Request body: {body}")
 
-        # Пробуем обработать данные как JSON
+        # Пробуем распарсить JSON
         data = await request.json()
-        if not data.get("message", {}).get("text"):
-            return web.Response(status=400, text="Bad Request - Empty message text")
+
+        # 👇 Логируем тип апдейта (например: ['message'], ['callback_query'] и т.д.)
+        print("Update type:", list(data.keys()))
+
     except Exception as e:
         print(f"Error parsing JSON: {e}")
         return web.Response(status=400, text="Bad Request - Invalid JSON")
 
     try:
-        # Обрабатываем корректные данные
+        # Отдаём апдейт в aiogram
         update = types.Update.model_validate(data)
         await dp.feed_update(bot, update)
-        return web.Response()  # Ответ от сервера
     except Exception as e:
         print(f"Error handling webhook: {e}")
-        return web.Response(status=500, text="Internal Server Error")
+        # Можно залогировать ошибку, но возвращаем 200, чтобы Telegram не ретраил
+        return web.Response(status=200, text=f"Error handled: {e}")
+
+    # ✅ Telegram считает это успешным ответом — больше не будет ретраить
+    return web.Response(status=200, text="OK")
+
     
 app = web.Application()
 app.router.add_post("/webhook", handle)
